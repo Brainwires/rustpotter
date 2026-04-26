@@ -210,7 +210,16 @@ impl Rustpotter {
     pub fn get_bytes_per_frame(&self) -> usize {
         self.wav_encoder.get_input_byte_length()
     }
-    /// Returns a reference to the current partial detection if any.
+    /// Returns a reference to the current partial detection, if any.
+    ///
+    /// A "partial" detection is one whose score has crossed the configured
+    /// threshold but for which the detector is still waiting on
+    /// `min_partial_scores` consecutive frames before emitting a final
+    /// detection (eager detection consumes this earlier).
+    ///
+    /// Returns `None` when no wakeword frame has produced a score above the
+    /// threshold within the current rolling window, or after [`Rustpotter::reset`]
+    /// or a successful detection has cleared the internal state.
     pub fn get_partial_detection(&self) -> Option<&RustpotterDetection> {
         self.partial_detection.as_ref()
     }
@@ -287,8 +296,16 @@ impl Rustpotter {
         self.gain_normalizer_filter = (&config.gain_normalizer).into();
         self.reset();
     }
-    /// Clean internal State
+    /// Clear the detector's transient internal state.
     ///
+    /// Resets the rolling MFCC window, the buffering flag, any in-flight
+    /// partial detection, the MFCC extractor, and the VAD (if enabled).
+    /// Also clears the recording buffer when the `record` feature is on.
+    ///
+    /// Loaded wake-words, the configured filters, score reference, score
+    /// mode, threshold, and other configuration are **preserved**. Use this
+    /// when you want to discard the audio context and start a fresh
+    /// detection window without rebuilding the detector.
     pub fn reset(&mut self) {
         self.buffering = true;
         self.partial_detection = None;

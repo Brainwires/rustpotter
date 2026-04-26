@@ -206,7 +206,7 @@ let mut samples_buffer: Vec<i16> = vec![0; rustpotter.get_samples_per_frame()];
 // while true { Iterate forever
     // fill the buffer with the required samples
     ...
-    let detection = rustpotter.process(samples_buffer);
+    let detection = rustpotter.process_samples(samples_buffer);
     if let Some(detection) = detection {
         println!("{:?}", detection);
     }
