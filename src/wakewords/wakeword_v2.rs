@@ -15,16 +15,24 @@ pub struct WakewordV2 {
     pub enabled: bool,
 }
 impl WakewordLoad for WakewordV2 {}
-impl From<WakewordV2> for WakewordRef {
-    fn from(val: WakewordV2) -> Self {
-        WakewordRef {
+impl TryFrom<WakewordV2> for WakewordRef {
+    type Error = String;
+
+    fn try_from(val: WakewordV2) -> Result<Self, Self::Error> {
+        let mfcc_size = val
+            .samples_features
+            .values()
+            .next()
+            .ok_or_else(|| "Can not convert an empty wakeword".to_string())?[0]
+            .len() as u16;
+        Ok(WakewordRef {
             name: val.name,
-            mfcc_size: val.samples_features.values().next().unwrap()[0].len() as u16,
+            mfcc_size,
             threshold: val.threshold,
             avg_threshold: val.avg_threshold,
             avg_features: val.avg_features,
             samples_features: val.samples_features,
             rms_level: val.rms_level,
-        }
+        })
     }
 }

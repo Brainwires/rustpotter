@@ -49,10 +49,11 @@ impl WakewordRef {
         rms_level: f32,
         samples_features: HashMap<String, Vec<Vec<f32>>>,
     ) -> Result<WakewordRef, String> {
-        if samples_features.is_empty() {
-            return Err("Can not create an empty wakeword".to_string());
-        }
-        let mfcc_size = samples_features.values().next().unwrap()[0].len() as u16;
+        let mfcc_size = samples_features
+            .values()
+            .next()
+            .ok_or_else(|| "Can not create an empty wakeword".to_string())?[0]
+            .len() as u16;
         Ok(WakewordRef {
             name,
             threshold,

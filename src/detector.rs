@@ -151,7 +151,8 @@ impl Rustpotter {
     /// Add wakeword from file bytes.
     pub fn add_wakeword_from_buffer(&mut self, key: &str, buffer: &[u8]) -> Result<(), String> {
         WakewordV2::load_from_buffer(buffer)
-            .and_then(|w| self.add_wakeword_ref(key, w.into()))
+            .and_then(WakewordRef::try_from)
+            .and_then(|w| self.add_wakeword_ref(key, w))
             .or_else(|_| {
                 WakewordRef::load_from_buffer(buffer)
                     .and_then(|wakeword| self.add_wakeword_ref(key, wakeword))
@@ -164,7 +165,8 @@ impl Rustpotter {
     /// Add wakeword from file path.
     pub fn add_wakeword_from_file(&mut self, key: &str, path: &str) -> Result<(), String> {
         WakewordV2::load_from_file(path)
-            .and_then(|w| self.add_wakeword_ref(key, w.into()))
+            .and_then(WakewordRef::try_from)
+            .and_then(|w| self.add_wakeword_ref(key, w))
             .or_else(|_| {
                 WakewordRef::load_from_file(path)
                     .and_then(|wakeword| self.add_wakeword_ref(key, wakeword))
