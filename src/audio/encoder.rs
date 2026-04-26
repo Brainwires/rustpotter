@@ -84,12 +84,8 @@ impl AudioEncoder {
         Ok(AudioEncoder {
             input_samples_per_frame,
             output_samples_per_frame,
-            resampler_out_buffer: resampler
-                .as_ref()
-                .map(|r| r.output_buffer_allocate(true)),
-            resampler_input_buffer: resampler
-                .as_ref()
-                .map(|r| r.input_buffer_allocate(false)),
+            resampler_out_buffer: resampler.as_ref().map(|r| r.output_buffer_allocate(true)),
+            resampler_input_buffer: resampler.as_ref().map(|r| r.input_buffer_allocate(false)),
             resampler,
             source_sample_format: input_spec.sample_format.clone(),
             source_channels: input_spec.channels,

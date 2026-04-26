@@ -50,14 +50,10 @@ pub trait WakewordModelTrain {
         wakeword_model: Option<WakewordModel>,
     ) -> Result<WakewordModel, Error> {
         if samples.is_empty() {
-            return Err(std::io::Error::other(
-                "No training data provided",
-            ));
+            return Err(std::io::Error::other("No training data provided"));
         }
         if test_samples.is_empty() {
-            return Err(std::io::Error::other(
-                "No test data provided",
-            ));
+            return Err(std::io::Error::other("No test data provided"));
         }
         // prepare data
         if wakeword_model.is_some() {
