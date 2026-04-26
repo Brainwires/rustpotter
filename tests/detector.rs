@@ -5,6 +5,23 @@ use std::{
 
 use rustpotter::{Rustpotter, RustpotterConfig, SampleFormat, ScoreMode, VADMode};
 
+/// Relative-tolerance float comparison used by the assertions below.
+///
+/// Strict `assert_eq!` on floats was fragile across upstream numeric library
+/// updates (e.g. the candle 0.2 -> 0.10 bump caused ~1 ULP drift on several
+/// scores). We compare with a small relative tolerance instead.
+fn approx_eq(a: f32, b: f32, eps: f32) -> bool {
+    (a - b).abs() <= eps * a.abs().max(b.abs()).max(1.0)
+}
+
+#[track_caller]
+fn assert_close(actual: f32, expected: f32) {
+    assert!(
+        approx_eq(actual, expected, 1e-5),
+        "left={actual}, right={expected}"
+    );
+}
+
 #[test]
 fn it_can_detect_wakewords_with_v2_file() {
     let mut config = RustpotterConfig::default();
@@ -15,10 +32,10 @@ fn it_can_detect_wakewords_with_v2_file() {
     config.detector.score_mode = ScoreMode::Max;
     let detected_wakewords = run_detection_simulation(config, "/tests/resources/oye_casa_g_v2.rpw");
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].avg_score, 0.6495044);
-    assert_eq!(detected_wakewords[0].score, 0.7310586);
-    assert_eq!(detected_wakewords[1].avg_score, 0.5804737);
-    assert_eq!(detected_wakewords[1].score, 0.721843);
+    assert_close(detected_wakewords[0].avg_score, 0.6495044);
+    assert_close(detected_wakewords[0].score, 0.7310586);
+    assert_close(detected_wakewords[1].avg_score, 0.5804737);
+    assert_close(detected_wakewords[1].score, 0.721843);
 }
 
 #[test]
@@ -31,10 +48,10 @@ fn it_can_detect_wakewords_with_max_score_mode() {
     config.detector.score_mode = ScoreMode::Max;
     let detected_wakewords = run_detection_simulation(config, "/tests/resources/oye_casa_g.rpw");
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].avg_score, 0.6495044);
-    assert_eq!(detected_wakewords[0].score, 0.7310586);
-    assert_eq!(detected_wakewords[1].avg_score, 0.5804737);
-    assert_eq!(detected_wakewords[1].score, 0.721843);
+    assert_close(detected_wakewords[0].avg_score, 0.6495044);
+    assert_close(detected_wakewords[0].score, 0.7310586);
+    assert_close(detected_wakewords[1].avg_score, 0.5804737);
+    assert_close(detected_wakewords[1].score, 0.721843);
 }
 
 #[test]
@@ -47,10 +64,10 @@ fn it_can_detect_wakewords_with_median_score_mode() {
     config.detector.score_mode = ScoreMode::Median;
     let detected_wakewords = run_detection_simulation(config, "/tests/resources/oye_casa_g.rpw");
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].avg_score, 0.64608675);
-    assert_eq!(detected_wakewords[0].score, 0.60123634);
-    assert_eq!(detected_wakewords[1].avg_score, 0.5288923);
-    assert_eq!(detected_wakewords[1].score, 0.63968724);
+    assert_close(detected_wakewords[0].avg_score, 0.64608675);
+    assert_close(detected_wakewords[0].score, 0.60123634);
+    assert_close(detected_wakewords[1].avg_score, 0.5288923);
+    assert_close(detected_wakewords[1].score, 0.63968724);
 }
 
 #[test]
@@ -63,10 +80,10 @@ fn it_can_detect_wakewords_with_average_score_mode() {
     config.detector.score_mode = ScoreMode::Average;
     let detected_wakewords = run_detection_simulation(config, "/tests/resources/oye_casa_g.rpw");
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].avg_score, 0.64608675);
-    assert_eq!(detected_wakewords[0].score, 0.60458726);
-    assert_eq!(detected_wakewords[1].avg_score, 0.5750509);
-    assert_eq!(detected_wakewords[1].score, 0.6313083);
+    assert_close(detected_wakewords[0].avg_score, 0.64608675);
+    assert_close(detected_wakewords[0].score, 0.60458726);
+    assert_close(detected_wakewords[1].avg_score, 0.5750509);
+    assert_close(detected_wakewords[1].score, 0.6313083);
 }
 
 #[test]
@@ -80,10 +97,10 @@ fn it_can_detect_wakewords_with_vad_mode() {
     config.detector.vad_mode = Some(VADMode::Easy);
     let detected_wakewords = run_detection_simulation(config, "/tests/resources/oye_casa_g.rpw");
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].avg_score, 0.6495044);
-    assert_eq!(detected_wakewords[0].score, 0.7310586);
-    assert_eq!(detected_wakewords[1].avg_score, 0.5804737);
-    assert_eq!(detected_wakewords[1].score, 0.721843);
+    assert_close(detected_wakewords[0].avg_score, 0.6495044);
+    assert_close(detected_wakewords[0].score, 0.7310586);
+    assert_close(detected_wakewords[1].avg_score, 0.5804737);
+    assert_close(detected_wakewords[1].score, 0.721843);
 }
 
 #[test]
@@ -122,8 +139,8 @@ fn it_can_detect_wakewords_while_applying_band_pass_audio_filter() {
     config.detector.score_mode = ScoreMode::Max;
     let detected_wakewords = run_detection_simulation(config, "/tests/resources/oye_casa_g.rpw");
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].score, 0.6858197);
-    assert_eq!(detected_wakewords[1].score, 0.66327363);
+    assert_close(detected_wakewords[0].score, 0.6858197);
+    assert_close(detected_wakewords[1].score, 0.66327363);
 }
 
 #[test]
@@ -137,8 +154,8 @@ fn it_can_detect_wakewords_while_applying_gain_normalizer_audio_filter() {
     let detected_wakewords =
         run_detection_simulation_with_gains(config, "/tests/resources/oye_casa_g.rpw", 0.2, 5.);
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].score, 0.7304294);
-    assert_eq!(detected_wakewords[1].score, 0.71067876);
+    assert_close(detected_wakewords[0].score, 0.7304294);
+    assert_close(detected_wakewords[1].score, 0.71067876);
 }
 
 #[test]
@@ -154,8 +171,8 @@ fn it_can_detect_wakewords_while_applying_gain_normalizer_and_band_pass_audio_fi
     let detected_wakewords =
         run_detection_simulation_with_gains(config, "/tests/resources/oye_casa_g.rpw", 0.2, 5.);
     assert_eq!(detected_wakewords.len(), 2);
-    assert_eq!(detected_wakewords[0].score, 0.5775406);
-    assert_eq!(detected_wakewords[1].score, 0.5828697);
+    assert_close(detected_wakewords[0].score, 0.5775406);
+    assert_close(detected_wakewords[1].score, 0.5828697);
 }
 
 #[test]
@@ -173,14 +190,14 @@ fn it_can_detect_wakewords_on_record_with_noise() {
         "/tests/resources/real_sample.wav",
     );
     assert_eq!(detected_wakewords.len(), 3);
-    assert_eq!(detected_wakewords[0].avg_score, 0.4676845);
-    assert_eq!(detected_wakewords[0].score, 0.527971);
+    assert_close(detected_wakewords[0].avg_score, 0.4676845);
+    assert_close(detected_wakewords[0].score, 0.527971);
     assert_eq!(detected_wakewords[0].counter, 24);
-    assert_eq!(detected_wakewords[1].avg_score, 0.32865646);
-    assert_eq!(detected_wakewords[1].score, 0.48120698);
+    assert_close(detected_wakewords[1].avg_score, 0.32865646);
+    assert_close(detected_wakewords[1].score, 0.48120698);
     assert_eq!(detected_wakewords[1].counter, 7);
-    assert_eq!(detected_wakewords[2].avg_score, 0.30807483);
-    assert_eq!(detected_wakewords[2].score, 0.5164661);
+    assert_close(detected_wakewords[2].avg_score, 0.30807483);
+    assert_close(detected_wakewords[2].score, 0.5164661);
     assert_eq!(detected_wakewords[2].counter, 35);
 }
 
@@ -202,14 +219,14 @@ fn it_can_detect_wakewords_on_record_with_noise_using_filters() {
         "/tests/resources/real_sample.wav",
     );
     assert_eq!(detected_wakewords.len(), 3);
-    assert_eq!(detected_wakewords[0].avg_score, 0.45496628);
-    assert_eq!(detected_wakewords[0].score, 0.5380342);
+    assert_close(detected_wakewords[0].avg_score, 0.45496628);
+    assert_close(detected_wakewords[0].score, 0.5380342);
     assert_eq!(detected_wakewords[0].counter, 23);
-    assert_eq!(detected_wakewords[1].avg_score, 0.336222);
-    assert_eq!(detected_wakewords[1].score, 0.5001262);
+    assert_close(detected_wakewords[1].avg_score, 0.336222);
+    assert_close(detected_wakewords[1].score, 0.5001262);
     assert_eq!(detected_wakewords[1].counter, 5);
-    assert_eq!(detected_wakewords[2].avg_score, 0.3049497);
-    assert_eq!(detected_wakewords[2].score, 0.5189481);
+    assert_close(detected_wakewords[2].avg_score, 0.3049497);
+    assert_close(detected_wakewords[2].score, 0.5189481);
     assert_eq!(detected_wakewords[2].counter, 31);
 }
 
@@ -225,9 +242,9 @@ fn it_can_detect_wakewords_using_trained_model() {
     assert_eq!(detected_wakewords.len(), 1);
     assert_eq!(detected_wakewords[0].counter, 34);
     assert_eq!(detected_wakewords[0].avg_score, 0.);
-    assert_eq!(detected_wakewords[0].score, 0.9997649);
-    assert_eq!(detected_wakewords[0].scores["ok_casa"], 3.7506533);
-    assert_eq!(detected_wakewords[0].scores["none"], -16.83091);
+    assert_close(detected_wakewords[0].score, 0.9997649);
+    assert_close(detected_wakewords[0].scores["ok_casa"], 3.7506533);
+    assert_close(detected_wakewords[0].scores["none"], -16.83091);
 }
 
 #[test]
@@ -241,10 +258,10 @@ fn it_can_detect_wakewords_using_trained_model_and_avg_score() {
     );
     assert_eq!(detected_wakewords.len(), 1);
     assert_eq!(detected_wakewords[0].counter, 34);
-    assert_eq!(detected_wakewords[0].avg_score, 0.9997649);
-    assert_eq!(detected_wakewords[0].score, 0.9997649);
-    assert_eq!(detected_wakewords[0].scores["ok_casa"], 3.7506533);
-    assert_eq!(detected_wakewords[0].scores["none"], -16.83091);
+    assert_close(detected_wakewords[0].avg_score, 0.9997649);
+    assert_close(detected_wakewords[0].score, 0.9997649);
+    assert_close(detected_wakewords[0].scores["ok_casa"], 3.7506533);
+    assert_close(detected_wakewords[0].scores["none"], -16.83091);
 }
 
 #[test]
@@ -261,9 +278,9 @@ fn it_can_detect_wakewords_in_eager_mode() {
     assert_eq!(detected_wakewords.len(), 1);
     assert_eq!(detected_wakewords[0].counter, 20);
     assert_eq!(detected_wakewords[0].avg_score, 0.);
-    assert_eq!(detected_wakewords[0].score, 0.9992142);
-    assert_eq!(detected_wakewords[0].scores["ok_casa"], 23.990948);
-    assert_eq!(detected_wakewords[0].scores["none"], 6.0654087);
+    assert_close(detected_wakewords[0].score, 0.9992142);
+    assert_close(detected_wakewords[0].scores["ok_casa"], 23.990948);
+    assert_close(detected_wakewords[0].scores["none"], 6.0654087);
 }
 #[test]
 fn it_can_remove_wakeword_by_key() {
