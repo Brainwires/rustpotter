@@ -37,6 +37,20 @@ impl AudioEncoder {
             buffer.into_iter().map(T::into_f32).collect::<Vec<f32>>(),
         )
     }
+    /// Slice-based variant of [`Self::rencode_and_resample`] that avoids
+    /// requiring callers to own the input. Internally we only ever drive a
+    /// single iterator over the samples to build a fresh `Vec<f32>`, so a
+    /// `&[T]` input is sufficient and saves a per-frame allocation in
+    /// streaming scenarios.
+    pub fn rencode_and_resample_slice<T: Sample>(&mut self, buffer: &[T]) -> Vec<f32> {
+        self.reencode_to_mono_with_sample_rate(
+            buffer
+                .iter()
+                .copied()
+                .map(T::into_f32)
+                .collect::<Vec<f32>>(),
+        )
+    }
     fn reencode_to_mono_with_sample_rate(&mut self, buffer: Vec<f32>) -> Vec<f32> {
         let mono_buffer = if self.source_channels != 1 {
             buffer

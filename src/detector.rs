@@ -263,6 +263,28 @@ impl Rustpotter {
         let float_samples = self.wav_encoder.rencode_and_resample::<T>(audio_samples);
         self.process_audio(float_samples)
     }
+    /// Slice-based variant of [`Self::process_samples`].
+    ///
+    /// Identical semantics, but accepts `&[T]` so streaming callers (e.g.
+    /// real-time mic loops) don't have to allocate a fresh `Vec<T>` on
+    /// every frame just to satisfy the by-value signature. Internally
+    /// `process_samples` only iterates over its input once to copy each
+    /// sample into a `Vec<f32>`, so taking a slice is sufficient.
+    ///
+    /// Number of samples provided should match the return of the
+    /// `get_samples_per_frame` method.
+    pub fn process_samples_slice<T: Sample>(
+        &mut self,
+        audio_samples: &[T],
+    ) -> Option<RustpotterDetection> {
+        if audio_samples.len() != self.get_samples_per_frame() {
+            return None;
+        }
+        let float_samples = self
+            .wav_encoder
+            .rencode_and_resample_slice::<T>(audio_samples);
+        self.process_audio(float_samples)
+    }
     /// Updates detector and audio filters configs.
     ///
     pub fn update_config(&mut self, config: &RustpotterConfig) {
