@@ -185,10 +185,15 @@ impl MfccExtractor {
             let filter_end_index = centre_indices[i + 2];
             let triangle_range_up = filter_center_index - filter_begin_index;
             let triangle_range_down = filter_end_index - filter_center_index;
+            // reason: needless_range_loop — index `k` is used both for slope math and to
+            // write into `filter_bank[i]`; rewriting with iterators harms readability here.
+            #[allow(clippy::needless_range_loop)]
             // upward slope
             for k in filter_begin_index..filter_center_index {
                 filter_bank[i][k] = (k - filter_begin_index) as f32 / triangle_range_up as f32;
             }
+            // reason: needless_range_loop — see above; index used in arithmetic with bounds.
+            #[allow(clippy::needless_range_loop)]
             // downwards slope
             for k in filter_center_index..filter_end_index {
                 filter_bank[i][k] = (filter_end_index - k) as f32 / triangle_range_down as f32;

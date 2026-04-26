@@ -334,9 +334,8 @@ fn run_detection_with_audio_file(
     let detected_wakewords = audio_samples
         .chunks_exact(rustpotter.get_samples_per_frame())
         .filter_map(|audio_buffer| rustpotter.process_samples(audio_buffer.into()))
-        .map(|detection| {
-            print_detection(&detection);
-            detection
+        .inspect(|detection| {
+            print_detection(detection);
         })
         .collect::<Vec<_>>();
     detected_wakewords
@@ -378,9 +377,8 @@ fn run_detection_simulation_with_gains(
     let detected_wakewords = live_audio_simulation
         .chunks_exact(rustpotter.get_bytes_per_frame())
         .filter_map(|audio_buffer| rustpotter.process_bytes(audio_buffer))
-        .map(|detection| {
-            print_detection(&detection);
-            detection
+        .inspect(|detection| {
+            print_detection(detection);
         })
         .collect::<Vec<_>>();
     detected_wakewords

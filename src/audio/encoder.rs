@@ -57,7 +57,7 @@ impl AudioEncoder {
                 .unwrap()
                 .process_into_buffer(waves_in, waves_out, None)
                 .unwrap();
-            waves_out.get(0).unwrap().to_vec()
+            waves_out.first().unwrap().to_vec()
         }
     }
     pub fn new(
@@ -84,16 +84,12 @@ impl AudioEncoder {
         Ok(AudioEncoder {
             input_samples_per_frame,
             output_samples_per_frame,
-            resampler_out_buffer: if resampler.is_some() {
-                Some(resampler.as_ref().unwrap().output_buffer_allocate(true))
-            } else {
-                None
-            },
-            resampler_input_buffer: if resampler.is_some() {
-                Some(resampler.as_ref().unwrap().input_buffer_allocate(false))
-            } else {
-                None
-            },
+            resampler_out_buffer: resampler
+                .as_ref()
+                .map(|r| r.output_buffer_allocate(true)),
+            resampler_input_buffer: resampler
+                .as_ref()
+                .map(|r| r.input_buffer_allocate(false)),
             resampler,
             source_sample_format: input_spec.sample_format.clone(),
             source_channels: input_spec.channels,

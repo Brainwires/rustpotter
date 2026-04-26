@@ -99,7 +99,7 @@ impl WakewordNN {
     }
 
     fn predict_labels(&self, mfcc_frame: Vec<Vec<f32>>) -> Option<Vec<f32>> {
-        Tensor::from_iter(flat_features(mfcc_frame).into_iter(), &Device::Cpu)
+        Tensor::from_iter(flat_features(mfcc_frame), &Device::Cpu)
             .and_then(|tensor| Tensor::stack(&[tensor], 0))
             .and_then(|tensor_stack| self.model.forward(&tensor_stack))
             .and_then(|logits| logits.get(0))
@@ -250,8 +250,7 @@ fn load_weights(
         model_weights
             .get(name)
             .map(|data| var.set(&data.into()))
-            .unwrap_or(Err(candle_core::Error::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            .unwrap_or(Err(candle_core::Error::Io(std::io::Error::other(
                 "Incorrect model layers",
             ))))?;
     }

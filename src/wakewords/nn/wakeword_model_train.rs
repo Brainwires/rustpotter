@@ -13,7 +13,7 @@ use candle_nn::{loss, ops, VarMap};
 use std::{
     collections::HashMap,
     fs,
-    io::{BufReader, Error, ErrorKind},
+    io::{BufReader, Error},
 };
 
 pub struct WakewordModelTrainOptions {
@@ -50,14 +50,12 @@ pub trait WakewordModelTrain {
         wakeword_model: Option<WakewordModel>,
     ) -> Result<WakewordModel, Error> {
         if samples.is_empty() {
-            return Err(std::io::Error::new(
-                ErrorKind::Other,
+            return Err(std::io::Error::other(
                 "No training data provided",
             ));
         }
         if test_samples.is_empty() {
-            return Err(std::io::Error::new(
-                ErrorKind::Other,
+            return Err(std::io::Error::other(
                 "No test data provided",
             ));
         }
@@ -68,7 +66,7 @@ pub trait WakewordModelTrain {
         let mut labels: Vec<String> = wakeword_model
             .as_ref()
             .map(|m| m.labels.clone())
-            .unwrap_or_else(Vec::new);
+            .unwrap_or_default();
         let m_type = wakeword_model
             .as_ref()
             .map(|m| m.m_type.clone())
@@ -99,8 +97,7 @@ pub trait WakewordModelTrain {
         println!("Testing with {} records.", test_labeled_mfccs.len());
         // validate labels
         if labels.len() < 2 {
-            return Err(std::io::Error::new(
-                ErrorKind::Other,
+            return Err(std::io::Error::other(
                 "Your training data need to contain at least two labels",
             ));
         }
@@ -279,12 +276,12 @@ fn get_labels_tensor_stack(labeled_features: &[(Vec<f32>, u32)]) -> Result<Tenso
 fn get_mfccs_tensor_stack(labeled_mfccs: Vec<(Vec<f32>, u32)>) -> Result<Tensor, Error> {
     let tensors_result: Result<Vec<Tensor>, Error> = labeled_mfccs
         .into_iter()
-        .map(|lf| Tensor::from_iter(lf.0.into_iter(), &Device::Cpu).map_err(convert_error))
+        .map(|lf| Tensor::from_iter(lf.0, &Device::Cpu).map_err(convert_error))
         .collect();
     Tensor::stack(&tensors_result?, 0).map_err(convert_error)
 }
 fn convert_error(err: candle_core::Error) -> Error {
-    Error::new(ErrorKind::Other, format!("{}", err))
+    Error::other(format!("{}", err))
 }
 fn get_mfccs_labeled(
     samples: &HashMap<String, Vec<u8>>,
@@ -311,8 +308,7 @@ fn get_mfccs_labeled(
             if new_labels {
                 labels.push(label.clone());
             } else {
-                return Err(Error::new(
-                    ErrorKind::Other,
+                return Err(Error::other(
                     format!("Forbidden label '{}', it doesn't exists on the training data or in the model you are training from.", label),
                 ));
             }
@@ -324,7 +320,7 @@ fn get_mfccs_labeled(
             &mut tmp_sample_rms_level,
             mfcc_size,
         )
-        .map_err(|msg| Error::new(ErrorKind::Other, msg))?;
+        .map_err(Error::other)?;
         if !label.eq(NN_NONE_LABEL) {
             if !sample_rms_level.is_nan() {
                 *sample_rms_level = (*sample_rms_level + tmp_sample_rms_level) / 2.;

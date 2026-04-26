@@ -43,7 +43,7 @@ pub struct Rustpotter {
     eager: bool,
     /// How to calculate the final score.
     score_mode: ScoreMode,
-    ///
+    /// Optional voice activity detector used to gate detection on speech.
     vad_detector: Option<VadDetector>,
     // Utils
     /// Utility to encode or re-encode the input wav data.
@@ -380,7 +380,7 @@ impl Rustpotter {
             || self
                 .vad_detector
                 .as_mut()
-                .map_or(true, |v| v.is_voice(&mfcc_frame));
+                .is_none_or(|v| v.is_voice(&mfcc_frame));
         self.audio_mfcc_window.push(mfcc_frame);
         if self.audio_mfcc_window.len() >= self.max_mfcc_frames {
             if self.buffering {
