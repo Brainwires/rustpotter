@@ -2,10 +2,15 @@
 name = "rustpotter"
 version = "3.0.3-candle-0.10"
 edition = "2021"
+rust-version = "1.87"
 license = "Apache-2.0"
 description = "An open source wakeword spotter forged in rust."
 authors = ["Miguel Álvarez Díez <miguelwork92@gmail.com>"]
 repository = "https://github.com/GiviMAD/rustpotter"
+homepage = "https://github.com/Brainwires/rustpotter"
+documentation = "https://docs.rs/rustpotter"
+keywords = ["wakeword", "audio", "speech", "voice", "detection"]
+categories = ["multimedia::audio", "algorithms"]
 exclude = [
     ".vscode/*",
     "tests/*",
